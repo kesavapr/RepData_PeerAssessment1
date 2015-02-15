@@ -1,15 +1,11 @@
----
-title: 'Reproducible Research: Peer Assessment 1'
-output:
-  html_document:
-    keep_md: yes
----
+# Reproducible Research: Peer Assessment 1
 *****
 *****
 
 ##  Loading and preprocessing the data
 * Load all required packages
-```{r, message=FALSE, warning=FALSE }
+
+```r
 library(lubridate)
 library(dplyr)
 library(xtable)
@@ -25,7 +21,8 @@ opts_knit$set(unnamed.chunk.label = "fig")
 * Use group_by and summarize functions to create a new data table with date and total steps taken on that date
 * Use group_by and summarize functions to create a new data table with interval and average steps taken during that interval across all dates
 
-```{r, message=FALSE, warning=FALSE }
+
+```r
 activityData <- read.csv("./activity.csv", header = TRUE, stringsAsFactors = FALSE)
 activityData$date <- ymd(activityData$date)
 
@@ -48,42 +45,59 @@ avgstepsbyinterval <- summarize(activitybyinterval, avgsteps =
 
 * We will create a histogram to show the distribution of number of steps taken each day and 
 * Calculate mean and median of total number of steps taken per day
-```{r hist-orig}
+
+```r
 g <- ggplot(stepsbydate, aes(numsteps))
 p <- g + geom_histogram(binwidth = 1000, fill = "steelblue", color = "blue") +  
     labs(title = "Frequency of steps taken by day") +
     labs(x = "Steps per day", y = "Number of days")
 print(p)
+```
 
+![](figure/hist-orig-1.png) 
+
+```r
 mean <- mean(stepsbydate$numsteps, na.rm = TRUE)
 median <- median(stepsbydate$numsteps, na.rm = TRUE)
 ```
-* Average number of steps taken per day:     `r as.integer(mean)`
-* Median number of steps taken per day:      `r median`
+* Average number of steps taken per day:     9354
+* Median number of steps taken per day:      10395
 
 *****
 ## What is the average daily activity pattern?
 * To understand the daily activity pattern we will create a time series plot  of the 5-minute interval (x-axis) and the average number of steps taken in that interval, averaged across all days (y-axis)
-```{r activity-time-plot}
+
+```r
 g <- ggplot(avgstepsbyinterval, aes(interval, avgsteps))
 p <- g + geom_line() + 
     labs(x = "Activity monitoring interval", y = "Average number of steps")
 print(p)
 ```
+
+![](figure/activity-time-plot-1.png) 
 *****
 * We will now get the 5-minute interval with the maximum number of steps on average across all days
-```{r}
+
+```r
 maxinterval <- subset(avgstepsbyinterval, avgstepsbyinterval$avgsteps == max(avgstepsbyinterval$avgsteps))
 maxinterval
 ```
+
+```
+## Source: local data frame [1 x 2]
+## 
+##   interval avgsteps
+## 1      835      206
+```
 ****
-* 5-minute interval with maximum number of steps on average across all days is `r maxinterval$interval` to `r maxinterval$interval + 5`
+* 5-minute interval with maximum number of steps on average across all days is 835 to 840
 
 *****
 ## Imputing missing values
 * Inspecting the activity data file we find that there are a number of days and intervals where there are missing values (coded as `NA`). The presence of missing days may introduce bias into some calculations or summaries of the data. We will create a new dataset by replacing the missing data valuee for each 5-minute interval with the average of the steps taken during a specific 5-minute interval for all days in the activity data.
 
-```{r}
+
+```r
 ### Create new dataset with missing data filled in
 
 modActivityDataTbl <- activityDataTbl %>%
@@ -97,18 +111,23 @@ modstepsbydate <- summarize(modactivitybydate,
 ```
 * We will now create a histogram of the total number of steps taken each day and also calculate and report the **mean** and **median** total number of steps taken per day using the new dataset. 
 
-``` {r hist-mod}
+
+```r
 g <- ggplot(modstepsbydate, aes(numsteps))
 p <- g + geom_histogram(binwidth = 1000, fill = "steelblue", color = "blue") +  
     labs(title = "Frequency of steps taken by day") +
     labs(x = "Steps per day", y = "Number of days")
 print(p)
+```
 
+![](figure/hist-mod-1.png) 
+
+```r
 modmean <- mean(modstepsbydate$numsteps)
 modmedian <- median(modstepsbydate$numsteps)
 ```
-* Average number of steps taken per day:     `r as.integer(modmean)`   
-* Median number of steps taken per day:      `r modmedian`   
+* Average number of steps taken per day:     9528   
+* Median number of steps taken per day:      10439   
    
 We notice that the distribution shape of the histogram does not change significantly from the histogram using original dataset with missing values but at the same time there are some minor changes to the frequency for individual intervals. E.g. For 1 - 1000, it changed from 10 days to 9 days and the 10000 to 11000 interval changed from 10 days to 11 days.   
     
@@ -119,7 +138,8 @@ Since we used the average of number of steps for each interval to fill in the mi
 * To figure out any difference in activity patterns between weekdays and weekends we will create a factor variable with column name day in the dataset with two levels -- "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.   
 * We will then create  a panel plot containing a time series plotof the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).
 * The time series plot below shows that there is more activity over the weekend and the activity is speard over larger number of 5-minute interval vs weekday
-```{r weekday-end-plot}
+
+```r
 modActivityDataTbl <- activityDataTbl %>%
     mutate(steps = ifelse(is.na(activityDataTbl$steps), 
          avgstepsbyinterval[avgstepsbyinterval$interval == interval,]$avgsteps, 
@@ -141,3 +161,5 @@ p <- g + geom_line() +
     labs(x = "Interval", y = "Number of steps")
 print(p)
 ```
+
+![](figure/weekday-end-plot-1.png) 
